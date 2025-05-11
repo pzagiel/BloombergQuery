@@ -16,8 +16,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height),
                           styleMask: [.titled, .closable, .resizable],
                           backing: .buffered, defer: false)
-        window.title = "Bloomberg Query"
-        window.makeKeyAndOrderFront(nil)
+        window.title = "Bloomberg Query Webview"
+       // window.makeKeyAndOrderFront(nil)
         
         // Créer un WebView avec configuration
         let webConfiguration = WKWebViewConfiguration()
@@ -41,7 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     
     // Méthode appelée lorsque la page est complètement chargée
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("Page chargée avec succès")
+        //print("Page chargée avec succès")
         
         // Attendre un peu pour s'assurer que tout est bien chargé
         webView.evaluateJavaScript("document.querySelector('pre').textContent") { (result, error) in
@@ -56,37 +56,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             }
             
             // Si les données JSON sont récupérées, essayer de les analyser
-            print("Données JSON extraites : \(jsonString)")
+            //print("Données JSON extraites : \(jsonString)")
+            print(jsonString)
             
             // Optionnel : formater et afficher les données sous forme d'objet JSON lisible
-            if let data = jsonString.data(using: .utf8) {
-                do {
-                    // Désérialiser les données JSON en un objet
-                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                    
-                    // Arrondir les valeurs numériques dans le JSON
-                    if var jsonDict = jsonObject as? [String: Any], var priceArray = jsonDict["price"] as? [[String: Any]] {
-                        for (index, item) in priceArray.enumerated() {
-                            if var price = item["value"] as? Double {
-                                // Arrondir la valeur à 2 décimales
-                                priceArray[index]["value"] = round(price * 100) / 100
-                            }
-                        }
-                        
-                        jsonDict["price"] = priceArray
-                        
-                        // Convertir l'objet JSON modifié en une chaîne formatée
-                        let jsonData = try JSONSerialization.data(withJSONObject: jsonDict, options: [.prettyPrinted])
-                        
-                        // Convertir les données formatées en chaîne
-                        if let formattedJson = String(data: jsonData, encoding: .utf8) {
-                            print("Objet JSON formaté : \(formattedJson)")
-                        }
-                    }
-                } catch {
-                    print("Erreur d'analyse JSON: \(error)")
-                }
-            }
+//            if let data = jsonString.data(using: .utf8) {
+//                do {
+//                    // Désérialiser les données JSON en un objet
+//                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+//
+//                    // Arrondir les valeurs numériques dans le JSON
+//                    if var jsonDict = jsonObject as? [String: Any], var priceArray = jsonDict["price"] as? [[String: Any]] {
+//                        for (index, item) in priceArray.enumerated() {
+//                            if var price = item["value"] as? Double {
+//                                // Arrondir la valeur à 2 décimales
+//                                priceArray[index]["value"] = round(price * 100) / 100
+//                            }
+//                        }
+//
+//                        jsonDict["price"] = priceArray
+//
+//                        // Convertir l'objet JSON modifié en une chaîne formatée
+//                        let jsonData = try JSONSerialization.data(withJSONObject: jsonDict, options: [.prettyPrinted])
+//
+//                        // Convertir les données formatées en chaîne
+//                        if let formattedJson = String(data: jsonData, encoding: .utf8) {
+//                            print("Objet JSON formaté : \(formattedJson)")
+//                        }
+//                    }
+//                } catch {
+//                    print("Erreur d'analyse JSON: \(error)")
+//                }
+//            }
         }
     }
 }
