@@ -5,9 +5,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     
     var window: NSWindow!
     var webView: WKWebView!
+    var ticker: String!
     
     // Méthode appelée lors du lancement de l'application
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Récupérer le ticker à partir des arguments en ligne de commande
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.count > 1 {
+            ticker = arguments[1]
+        } else {
+            print("Erreur : Aucun ticker fourni en paramètre.")
+            return
+        }
+        
         // Rediriger la sortie vers stdout (terminal principal)
         freopen("/dev/tty", "a", stdout)  // Cela redirige stdout vers le terminal actuel
         
@@ -17,7 +27,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
                           styleMask: [.titled, .closable, .resizable],
                           backing: .buffered, defer: false)
         window.title = "Bloomberg Query Webview"
-       // window.makeKeyAndOrderFront(nil)
         
         // Créer un WebView avec configuration
         let webConfiguration = WKWebViewConfiguration()
@@ -28,10 +37,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         // Ajouter un délégué pour surveiller la fin du chargement
         webView.navigationDelegate = self  // Associer AppDelegate comme délégué
         
-        // Charger l'URL de Bloomberg
-        if let url = URL(string: "https://www.bloomberg.com/markets2/api/history/ALGN%3AUS/PX_LAST?timeframe=1_MONTH&period=daily") {
-            let request = URLRequest(url: url)
-            webView.load(request)
+        // Encoder le ticker pour l'URL
+        if let encodedTicker = ticker.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) {
+            // Construire l'URL avec le ticker encodé
+            let urlString = "https://www.bloomberg.com/markets2/api/history/\(encodedTicker)/PX_LAST?timeframe=1_MONTH&period=daily"
+            
+            if let url = URL(string: urlString) {
+                let request = URLRequest(url: url)
+                webView.load(request)
+            } else {
+                print("Erreur : URL malformée.")
+            }
+        } else {
+            print("Erreur : Échec de l'encodage du ticker.")
         }
     }
     
@@ -41,8 +59,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     
     // Méthode appelée lorsque la page est complètement chargée
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        //print("Page chargée avec succès")
-        
         // Attendre un peu pour s'assurer que tout est bien chargé
         webView.evaluateJavaScript("document.querySelector('pre').textContent") { (result, error) in
             if let error = error {
@@ -56,38 +72,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             }
             
             // Si les données JSON sont récupérées, essayer de les analyser
-            //print("Données JSON extraites : \(jsonString)")
             print(jsonString)
             
-            // Optionnel : formater et afficher les données sous forme d'objet JSON lisible
-//            if let data = jsonString.data(using: .utf8) {
-//                do {
-//                    // Désérialiser les données JSON en un objet
-//                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-//
-//                    // Arrondir les valeurs numériques dans le JSON
-//                    if var jsonDict = jsonObject as? [String: Any], var priceArray = jsonDict["price"] as? [[String: Any]] {
-//                        for (index, item) in priceArray.enumerated() {
-//                            if var price = item["value"] as? Double {
-//                                // Arrondir la valeur à 2 décimales
-//                                priceArray[index]["value"] = round(price * 100) / 100
-//                            }
-//                        }
-//
-//                        jsonDict["price"] = priceArray
-//
-//                        // Convertir l'objet JSON modifié en une chaîne formatée
-//                        let jsonData = try JSONSerialization.data(withJSONObject: jsonDict, options: [.prettyPrinted])
-//
-//                        // Convertir les données formatées en chaîne
-//                        if let formattedJson = String(data: jsonData, encoding: .utf8) {
-//                            print("Objet JSON formaté : \(formattedJson)")
-//                        }
-//                    }
-//                } catch {
-//                    print("Erreur d'analyse JSON: \(error)")
-//                }
-//            }
+            // Option 1 : Écrire les données dans un fichier JSON
+            self.writeJSONToFile(jsonString)
+        }
+    }
+    
+    // Fonction pour écrire les données JSON dans un fichier avec le nom du ticker
+    func writeJSONToFile(_ jsonString: String) {
+        // Créer le chemin du fichier avec l'extension .json
+        let fileManager = FileManager.default
+        let currentDirectory = fileManager.currentDirectoryPath
+        let filePath = "\(currentDirectory)/\(ticker).json"
+        
+        // Convertir la chaîne JSON en données
+        if let jsonData = jsonString.data(using: .utf8) {
+            // Écrire les données dans le fichier
+            do {
+                try jsonData.write(to: URL(fileURLWithPath: filePath))
+                print("Données JSON écrites dans le fichier : \(filePath)")
+            } catch {
+                print("Erreur lors de l'écriture du fichier JSON : \(error)")
+            }
+        } else {
+            print("Erreur de conversion de la chaîne JSON en données")
         }
     }
 }
