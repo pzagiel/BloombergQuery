@@ -72,7 +72,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             }
             
             // Si les données JSON sont récupérées, essayer de les analyser
-            print(jsonString)
+            //print(jsonString)
             
             // Option 1 : Écrire les données dans un fichier JSON
             self.writeJSONToFile(jsonString)
@@ -99,7 +99,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         } else {
             print("Erreur de conversion de la chaîne JSON en données")
         }
+        NSApp.terminate(nil)
     }
+    
 }
 
 // Utilisation de NSApplicationMain pour lancer l'application sans @main
