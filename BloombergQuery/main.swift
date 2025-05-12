@@ -84,7 +84,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         // Créer le chemin du fichier avec l'extension .json
         let fileManager = FileManager.default
         let currentDirectory = fileManager.currentDirectoryPath
-        let filePath = "\(currentDirectory)/\(ticker).json"
+        let tickerUnwrapped=ticker?.components(separatedBy: ":").first ?? "unknown"
+        let filePath = "\(currentDirectory)/\(tickerUnwrapped).json"
         
         // Convertir la chaîne JSON en données
         if let jsonData = jsonString.data(using: .utf8) {
