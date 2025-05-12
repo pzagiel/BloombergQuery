@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
             ticker = arguments[1]
         } else {
             print("Erreur : Aucun ticker fourni en paramètre.")
+            NSApp.terminate(nil)
             return
         }
         
